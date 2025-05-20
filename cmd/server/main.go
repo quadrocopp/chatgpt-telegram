@@ -36,6 +36,7 @@ func main() {
     // 1) FreeKassa callback
     http.HandleFunc("/freekassa/callback", func(w http.ResponseWriter, r *http.Request) {
         r.ParseForm()
+		log.Printf("callback data: %#v", r.Form)
         if !fk.Verify(r) {
             w.WriteHeader(http.StatusBadRequest)
             return
