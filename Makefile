@@ -4,7 +4,7 @@ all: build
 default: build
 
 build:
-	go build
+	go build -o chatgpt-telegram ./cmd/server
 
 clean:
 	rm chatgpt-telegram
