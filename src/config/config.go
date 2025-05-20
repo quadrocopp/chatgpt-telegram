@@ -17,33 +17,47 @@ type Config struct {
 // LoadOrCreatePersistentConfig uses the default config directory for the current OS
 // to load or create a config file named "chatgpt.json"
 func LoadOrCreatePersistentConfig() (*Config, error) {
-	configPath, err := os.UserConfigDir()
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Couldn't get user config dir: %v", err))
-	}
-	v := viper.New()
-	v.SetConfigType("json")
-	v.SetConfigName("chatgpt")
-	v.AddConfigPath(configPath)
+    v := viper.New()
 
-	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			if err := v.SafeWriteConfig(); err != nil {
-				return nil, errors.New(fmt.Sprintf("Couldn't create config file: %v", err))
-			}
-		} else {
-			return nil, errors.New(fmt.Sprintf("Couldn't read config file: %v", err))
-		}
-	}
+    // Получаем путь ~/.config
+    configPath, err := os.UserConfigDir()
+    if err != nil {
+        return nil, fmt.Errorf("Couldn't find user config dir: %v", err)
+    }
 
-	var cfg Config
-	err = v.Unmarshal(&cfg)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing config: %v", err))
-	}
-	cfg.v = v
+    // Настраиваем viper
+    v.AddConfigPath(configPath)
+    v.SetConfigName("chatgpt")       // файл chatgpt.json
+    v.SetConfigType("json")
 
-	return &cfg, nil
+    // Пытаемся прочитать существующий конфиг
+    if err := v.ReadInConfig(); err != nil {
+        if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+            // Если файла нет — сначала создаём директорию
+            if err := os.MkdirAll(configPath, 0o755); err != nil {
+                return nil, fmt.Errorf("Couldn't create config dir: %v", err)
+            }
+            // А потом — сам файл
+            if err := v.SafeWriteConfig(); err != nil {
+                return nil, fmt.Errorf("Couldn't create config file: %v", err)
+            }
+        } else {
+            return nil, fmt.Errorf("Couldn't load config: %v", err)
+        }
+    }
+
+    // Теперь конфиг гарантированно существует — читаем его
+    if err := v.ReadInConfig(); err != nil {
+        return nil, fmt.Errorf("Couldn't re-read config: %v", err)
+    }
+
+    // Привязываем значения из файла к нашей структуре Config
+    var cfg Config
+    if err := v.Unmarshal(&cfg); err != nil {
+        return nil, fmt.Errorf("Couldn't parse config: %v", err)
+    }
+
+    return &cfg, nil
 }
 
 func (cfg *Config) SetSessionToken(token string) error {
