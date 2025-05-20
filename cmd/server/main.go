@@ -73,13 +73,13 @@ func main() {
 		w.Write([]byte("YES"))
 	})
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	go func() {
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = "8080"
-		}
 		log.Printf("webhook listening on :%s", port)
-		log.Fatal(http.ListenAndServe(":"+port, nil))
+		http.ListenAndServe(":" + port, nil)
 	}()
 
 	// === Bot updates ===
