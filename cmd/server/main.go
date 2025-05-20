@@ -76,10 +76,17 @@ func main() {
     if webhookURL == "" {
         log.Fatal("WEBHOOK_URL is not set")
     }
-    _, err = bot.Request(tgbotapi.NewWebhook(webhookURL + "/telegram/webhook"))
-    if err != nil {
-        log.Fatalf("Couldn't set Telegram webhook: %v", err)
-    }
+	// 1) Сначала создаём WebhookConfig и проверяем ошибку
+	wh, err := tgbotapi.NewWebhook(webhookURL + "/telegram/webhook")
+	if err != nil {
+		log.Fatalf("Couldn't create webhook config: %v", err)
+	}
+
+	// 2) Передаём конфиг в bot.Request
+	_, err = bot.Request(wh)
+	if err != nil {
+		log.Fatalf("Couldn't set Telegram webhook: %v", err)
+	}
     http.HandleFunc("/telegram/webhook", func(w http.ResponseWriter, r *http.Request) {
         var update tgbotapi.Update
         if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
