@@ -1,2 +1,26 @@
+# env file
 .env
-vendor
+
+# Сторонние зависимости (если вы вендорите модули)
+vendor/
+
+# Бинарники для программ и плагинов
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Тестовый бинарник, собранный go test -c
+*.test
+
+# Вывод go coverage (например для LiteIDE)
+*.out
+
+# Файлы рабочего пространства Go
+go.work
+go.work.sum
+
+# IDE и прочие папки
+.vscode/
+.idea/
